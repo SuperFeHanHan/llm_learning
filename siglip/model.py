@@ -1,9 +1,9 @@
 
 import torch
 from dataclasses import dataclass
-from transformers.utils import ModelOuput
+from transformers.utils import ModelOutput
 @dataclass
-class SiglipOutput(ModelOuput):
+class SiglipOutput(ModelOutput):
     loss: torch.FloatTensor = None
     logits_per_text: torch.FloatTensor = None
     logits_per_image: torch.FloatTensor = None
@@ -23,11 +23,11 @@ class SiglipConfig(PretrainedConfig):
         self.vision_model_name_or_path = vision_model_name_or_path
         self.text_model_name_or_path = text_model_name_or_path
 
-from transformers import PretrainedModel
+from transformers import PreTrainedModel 
 from transformers import AutoModel, AutoProcessor, AutoTokenizer
 import torch.nn as nn
 import torch.nn.functional as F
-class SiglipModel(PretrainedModel):
+class SiglipModel(PreTrainedModel):
     config_class = SiglipConfig
     
     def __init__(self, config):
@@ -52,11 +52,11 @@ class SiglipModel(PretrainedModel):
         vision_features = vision_outputs[1] # pooler_output
         text_features = text_outputs[1] # pooler_output
         
-        # (B, H) -> (B, 1)
+        # (B, H) -> (B, H)
         vision_features = vision_features / vision_features.norm(p=2, dim=-1, keepdim=True) # l2标准化
         text_features = text_features / text_features.norm(p=2, dim=-1, keepdim=True) # l2标准化
         
-        # (B, 1) -> (B, B)
+        # (B, H) (H, B) -> (B, B)
         # Step1: t * x_i * y_j + b，原文中说t一般是exp(t')表示
         # 每一行对应的是[文本i-图像1, 文本i-图像2, ...]
         logits_per_text = self.t.exp() * torch.matmul(text_features, vision_features.t()) + self.b

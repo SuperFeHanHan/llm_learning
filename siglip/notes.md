@@ -15,6 +15,14 @@
 
 
 # Siglip损失函数：
-- $\frac{1}{|\mathcal{B}|} \sum_{i=1}^{|\mathcal{B}|} \sum_{j=1}^{|\mathcal{B}|} \underbrace{\log \frac{1}{1+e^{z_{i j}\left(-t \mathbf{x}_i \cdot \mathbf{y}_j+b\right)}}}_{\mathcal{L}_{i j}}$
+$$-\frac{1}{|\mathcal{B}|} \sum_{i=1}^{|\mathcal{B}|} \sum_{j=1}^{|\mathcal{B}|} \underbrace{\log \frac{1}{1+e^{- z_{i j} *\left(t \mathbf{x}_i \cdot \mathbf{y}_j+b\right)}}}_{\mathcal{L}_{i j}}$$
 
+- $x_i$: Image的embedding
+- $y_j$: Text的embedding
+- $z_{i j}$: Image i和Text j是否匹配成功, 成功为1, 失败为-1
+- 本质想法是提升分类正确的概率: 
 
+$$\sum_{j=1}^{|\mathcal{B}|} \log \frac{1}{1+\exp(-z_{ij}\text{logits}_{ij})}$$
+
+- 如果是正例，则$P(\text{正例})=\frac{1}{1+\exp(-\text{logits}_{ij})}$
+- 否则，$P(\text{负例})=1-P(\text{正例})=1-\frac{1}{1+\exp(-\text{logits}_{ij})}=\frac{1}{1+\exp(\text{logits}_{ij})}$

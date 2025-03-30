@@ -32,9 +32,9 @@ class MyDataCollator:
 ```python
 import torch
 from dataclasses import dataclass
-from transformers.utils import ModelOuput
+from transformers.utils import ModelOutput
 @dataclass
-class SiglipOutput(ModelOuput):
+class SiglipOutput(ModelOutput):
     loss: torch.FloatTensor = None
     # ...
 
@@ -47,8 +47,8 @@ class SiglipConfig(PretrainedConfig):
         # 一般定义下模型组成部分的路径
         self.vision_model_name_or_path = vision_model_name_or_path
 
-from transformers import PretrainedModel
-class SiglipModel(PretrainedModel):
+from transformers import PreTrainedModel
+class SiglipModel(PreTrainedModel):
     config_class = SiglipConfig
     
     def __init__(self, config):
