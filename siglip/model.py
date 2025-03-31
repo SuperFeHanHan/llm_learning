@@ -1,3 +1,5 @@
+from transformers.image_utils import load_image
+from typing import List
 
 import torch
 from dataclasses import dataclass
@@ -81,3 +83,40 @@ class SiglipModel(PreTrainedModel):
                             logits_per_image=logits_per_image, 
                             text_embeds=text_features, 
                             image_embeds=vision_features)
+    def predict(self, text: List[str], input_image: List[str]):
+        tok = self.tokenizer(text, max_length = 64, 
+                             padding='max_length', truncation=True,
+                             return_tensors='pt')
+        images = [load_image(x) for x in input_image]
+        input_ids = tok['input_ids']
+        attention_mask = tok['attention_mask']
+        # from pprint import pprint
+        # pprint(tok)
+        device = self.text_model.device
+        pixel_values = self.process(images=images, return_tensors='pt')['pixel_values']
+        
+        self.text_model.eval()
+        self.vision_model.eval()
+        with torch.no_grad():
+            input_ids = input_ids.to(device)
+            attention_mask = attention_mask.to(device)
+            pixel_values = pixel_values.to(device)
+
+            text_outputs = self.text_model(input_ids, attention_mask)
+            vision_outputs = self.vision_model(pixel_values)
+
+            vision_features = vision_outputs[1] # pooler_output
+            text_features = text_outputs[1] # pooler_output
+            
+            vision_features = vision_features / vision_features.norm(p=2, dim=-1, keepdim=True) # l2标准化
+            text_features = text_features / text_features.norm(p=2, dim=-1, keepdim=True) # l2标准化
+
+            # (T, I)
+            logits_per_text = self.t.exp() * torch.matmul(text_features, vision_features.t()) + self.b
+            # (I, T)
+            logits_per_image = logits_per_text.t()
+        
+        # 得到每个image对应的文本
+        indices = torch.argmax(logits_per_image, dim=-1)
+        texts = [text[i] for i in indices]
+        return {"logits_per_image": logits_per_image, "texts": texts}

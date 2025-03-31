@@ -65,13 +65,14 @@ def train(output_dir,
         # eval_dataset=dev_dataset,
         data_collator=MyDataCollator()
     )
-    trainer.train()  # resume_from_checkpoint=True
+    trainer.train(resume_from_checkpoint=True)  # resume_from_checkpoint=True
     trainer.save_model()
     trainer.save_state()
     
 if __name__ == '__main__':
-    cur_time = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
-    output_dir = os.path.join(os.getcwd(), 'siglip', 'outputs', f'run_{cur_time}')
+    # cur_time = datetime.now().strftime("%Y-%m-%d_%H-%M-%S")
+    # output_dir = os.path.join(os.getcwd(), 'siglip', 'outputs', f'run_{cur_time}')
+    output_dir = os.path.join(os.getcwd(),'siglip', 'outputs', 'run_2025-03-30_17-08-53')
     text_model_name_or_path='hfl/chinese-roberta-wwm-ext'
     vision_model_name_or_path='google/vit-base-patch16-224'
 
